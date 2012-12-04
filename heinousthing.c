@@ -5,14 +5,65 @@
 #include <math.h>
 
 #define SIZE 4
+#define LEVELS 3
 
 int mainarray[SIZE];
-int returnarray[2*SIZE];
+
 int decodearray[SIZE];
 int arrindex = 0;
-int M = 2;
+int M = 64;
 
-int numlevels = 0;
+typedef struct
+{
+	int chunksize;
+	int K;
+	int size;
+} header;
+
+typedef struct
+{
+	long long* numbers;
+} remainder;
+
+header headers[LEVELS + 1];
+remainder remainders[LEVELS];
+int* final;
+
+void make_remainder(header h, int level)
+{
+	if (level == LEVELS)
+		return;
+	remainders[level].numbers = malloc(sizeof(int) * ceil((double)h.size/h.chunksize));
+	if(remainders[level].numbers == NULL)
+	{
+		printf("ERROR!\n");
+		exit(1);
+	}	
+}
+
+void make_headers(void)
+{
+	int oldk = 3;
+	int size = SIZE;
+	for(int i = 0; i <= LEVELS; i++)
+	{
+		int newk = 0;
+		int r = 1;
+		int n;
+		while(newk < 3)
+		{
+			r++;
+			n = floor((65*log(2.0) + log((double) r))/log((double) oldk));
+			newk = ceil(pow(oldk, n)/pow(2,M));
+		}
+		headers[i].chunksize = n;
+		headers[i].K = oldk;
+		oldk = newk;
+		headers[i].size = size;
+		make_remainder(headers[i], i);
+		size = ceil((double)size/n);
+	}
+}	
 
 
 void rand_trit(void)
@@ -24,55 +75,46 @@ void rand_trit(void)
 	}
 }
 
-void store(int num)
+void encode(int* array, header h, int level)
 {
-	for(long long i = 1; i <= 4294967295; i = i*2)
-	{
-		returnarray[arrindex] = num & i;
-		arrindex++;
-	}
-	return;
-}
-
-void encode(int* array, int size, int base, int num)
-{
-	if (base == 2 || size == 1)
+	if (level == LEVELS)
 	{	
-		for(int i = 0; i < size; i++)
-			printf("%d\n", array[i]);
-			printf("%d\n", numlevels);
-		//	returnarray[i + arrindex] = array[i];
+		double counter = 0;
+		while (h.K > 0)
+		{
+			h.K = h.K / 2;
+			counter++;
+		}	
+		final = malloc(ceil(counter/8)*h.size);
+		
+		for
+		
 		return;
 	}
 	int counter = 0;
 	int index = 0;
 	int divisor = pow(2, M);
-	int top = pow(base, num);
-	int new_array[size/num + 1];
-	printf("M%d\n",M);
-	//store(M);
-	while(counter < size)
+	int new_array[headers[level+1].size];
+	while(counter < h.size)
 	{
 		int total = 0;
 		for (int i = 0; i < num; i++)
 		{
-			total = total + pow(base,i)*array[counter];
+			total = total + pow(h.K,i)*array[counter];
 			counter++;
 		}
 		
 		int m = total % divisor;
 		int k = total / divisor;
 		
-		//store(m);
-		printf("m%d\n",m);
-		printf("k%d\n",k);
-
 		new_array[index] = k;
+		remainders[level].numbers[index] = m;
 		index++;
 	}
-	numlevels++;
-	return encode(new_array, index, 1 + top/divisor, num);
+	return encode(new_array, headers[level+1], level + 1);
 }
+
+void decode
 
 
 
@@ -80,7 +122,8 @@ int main(void)
 {
 	srand(time(NULL));
 	rand_trit();
-	encode(mainarray, SIZE, 3, 2);
+	make_headers();
+	encode(mainarray, headers[0], 0, SIZE);
 }
 
 
