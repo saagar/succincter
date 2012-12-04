@@ -8,8 +8,6 @@
 #define LEVELS 3
 
 int mainarray[SIZE];
-
-int decodearray[SIZE];
 int arrindex = 0;
 int M = 64;
 
@@ -75,21 +73,26 @@ void rand_trit(void)
 	}
 }
 
+void encode_last(int* array, header h);
+{
+	double counter = 0;
+	while (h.K > 0)
+	{
+		h.K = h.K / 2;
+		counter++;
+	}	
+	final = malloc(ceil(counter/8)*h.size);
+		
+		for
+		
+	return;
+}
+
 void encode(int* array, header h, int level)
 {
 	if (level == LEVELS)
 	{	
-		double counter = 0;
-		while (h.K > 0)
-		{
-			h.K = h.K / 2;
-			counter++;
-		}	
-		final = malloc(ceil(counter/8)*h.size);
-		
-		for
-		
-		return;
+		encode_last(array, h);
 	}
 	int counter = 0;
 	int index = 0;
@@ -113,10 +116,6 @@ void encode(int* array, header h, int level)
 	}
 	return encode(new_array, headers[level+1], level + 1);
 }
-
-void decode
-
-
 
 int main(void)
 {
