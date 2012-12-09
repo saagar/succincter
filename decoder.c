@@ -1,3 +1,10 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <time.h>
+#include <gmp.h>
+#include <math.h>
+
 typedef struct
 {
 	int chunksize;
@@ -7,18 +14,14 @@ typedef struct
 
 typedef struct
 {
-	long long* numbers;
-} remainder;
-
-typedef struct
-{
 	int path;
 	int where;
 }
 int M = 64;
 int levels;
+int size;
 header* headers;
-remainder* remainders;
+mpz_t* remainders;
 int* final;
 path* paths;
 
@@ -60,13 +63,17 @@ int decode_one(void)
 }
 extract_data()
 {
-
-
+	FILE* input = fopen("encoded.bin", "r");
+	fread(&size, sizeof(int), 1, input);
+	fread(&levels, sizeof(int), 1, input);
+	headers = malloc(sizeof(header) * levels);
+	for 
 }
 
 
 main(int argc, char*argv[])
 { 
+	extract_data();
 	if(argc == 2)
 	{
 		int num = atoi(argv[1]);
