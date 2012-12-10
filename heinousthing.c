@@ -5,13 +5,13 @@
 #include <gmp.h>
 #include <math.h>
 
-#define SIZE 4000000 
-#define LEVELS 6
+#define SIZE 400000
+#define LEVELS 3
 
 FILE* output;
 int mainarray[SIZE];
 int arrindex = 0;
-int M = 32;
+int M = 64;
 
 typedef struct
 {
@@ -51,7 +51,7 @@ void make_headers(void)
 		headers[i].size = size;
 		size = ceil((double)size/n);
 	}
-	fwrite(headers, sizeof(header), LEVELS, output);
+	fwrite(headers, sizeof(header), LEVELS + 1, output);
 	mpz_clear(newk);
 }	
 
@@ -69,8 +69,6 @@ void rand_trit(void)
 
 void encode_last(int* array, header h)
 {
-	mpz_t number;
-	mpz_init(number);
 	double counter = 0;
 	while (h.K > 0)
 	{
@@ -89,15 +87,17 @@ void encode_last(int* array, header h)
 			{
 				writer = writer | cycler;
 			}
-			k = k >> 1;
-			cycler = cycler >> 1;
+			k = k << 1;
+			cycler = cycler << 1;
 			if (cycler == 256)
 			{
 				fwrite(&writer, sizeof(uint8_t), 1, output);
+				writer = 0;
 				cycler = 1;
 			}
 		}
 	}
+	fwrite(&writer, sizeof(uint8_t), 1, output);
 	return;
 }
 
