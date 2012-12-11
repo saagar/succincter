@@ -17,8 +17,9 @@ typedef struct
 	int path;
 	int where;
 } path;
+
 FILE* input;
-int M = 64;
+int M;
 int levels;
 int size;
 header* headers;
@@ -39,6 +40,16 @@ void finish(int* array)
 	return;
 }
 
+void make_path(int n)
+{
+	paths = malloc(sizeof(int)*(levels + 1));
+	for(int i = 0; i < levels + 1; i++)
+	{
+		paths[i].where = n;
+		paths[i].path = n % headers[i].chunksize;
+		n = n / headers[i].chunksize;
+	}
+}
 
 void decode_all(int* array, header h, int level)
 {
@@ -48,39 +59,46 @@ void decode_all(int* array, header h, int level)
 	}
 	
 	int* new_array = malloc(sizeof(int)*headers[level-1].size);
-	int index = headers[level-1].size -1;
+	int index = 0;
 	mpz_t number, spill;
 	mpz_init(number);
 	mpz_init(spill);	
-	for(int i = h.size-1; i >= 0; i--)
+	for(int i = 0; i < h.size; i++)
 	{
 		mpz_ui_pow_ui(spill, 2, M);
 		mpz_set(number, remainders[level-1][i]);
 		mpz_addmul_ui(number, spill, array[i]);
-		for(int j = 0; j < headers[level-1].chunksize && index >= 0; j++)
+		int min = headers[level-1].chunksize > (headers[level-1].size - index)?(headers[level-1].size - index):headers[level-1].chunksize;
+		
+		for(int j = 0; j < min; j++)
 		{
-			
-			new_array[index] = mpz_fdiv_q_ui(number, number, headers[level-1].K);
-			index--;
+			new_array[index + min - j - 1] = mpz_fdiv_q_ui(number, number, headers[level-1].K);
 		}
+		index += min;
 	} 
 	return decode_all(new_array, headers[level - 1], level - 1);
 }
 
-/*int decode_one(void)
+int decode_one(void)
 {
-	int num = final[path[levels].where];
+	int num = final[paths[levels].path];
+	mpz_t number, spill;
+	mpz_init(number);
+	mpz_init(spill);
+	mpz_ui_pow_ui(spill, 2, M);
 	for(int i = levels - 1; i >=0; i--) 
 	{	
-		num = num * 2^M + remainders[i].numbers[path[i].where];
-		for(int j = 0; j < path[i].path; j++)
+		mpz_set(number, remainders[i][paths[i + 1].where]);
+		mpz_addmul_ui(number, spill, num);
+		for(int j = headers[i].chunksize - 1; j > paths[i].path; j--)
 		{
-			num = num / headers[i].K;
+			mpz_fdiv_q_ui(number, number, headers[i].K);
 		} 
-		num = num % headers[i].K;
+		mpz_fdiv_r_ui(number, number, headers[i].K);
+		num =  mpz_get_ui(number);
 	}
 	return num;
-}*/
+}
 
 void extract_last(header h)
 {
@@ -122,6 +140,7 @@ void extract_data(void)
 	input = fopen("encoded.bin", "r");
 	fread(&size, sizeof(int), 1, input);
 	fread(&levels, sizeof(int), 1, input);
+	fread(&M, sizeof(int), 1, input);
 	headers = malloc(sizeof(header) * (levels+1));
 	fread(headers, sizeof(header), levels + 1, input);
 	remainders = malloc(sizeof(mpz_t*)*levels);
@@ -135,20 +154,23 @@ void extract_data(void)
 	extract_last(headers[levels]);
 }
 
-void print_remainders(void)
-{
-	for(int i = 0; i < levels; i++)
-	{
-		printf("\n");
-		for(int j = 0; j < headers[i + 1].size; j++)
-			gmp_printf ("%Zd\n", remainders[i][j]);
-	}
-}
 
 int
 main(int argc, char*argv[])
 { 
 	extract_data();	
-	print_remainders();
-	decode_all(final, headers[2], 2);
+	if(argc == 2)
+	{
+		int num = atoi(argv[1]);
+		if (num < size)
+		{
+			make_path(num);
+			int p = decode_one();
+			printf("%d\n", p);
+		}
+		else
+			printf("error!\n");
+	}
+	else	
+		decode_all(final, headers[2], 2);
 }
