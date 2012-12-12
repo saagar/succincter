@@ -76,10 +76,9 @@ Using Mihai Patrascu's 2008 paper "Succincter",  we implement a way to store tri
 
 \noindent \section{Introduction}
 
-There are few effective methods for storing trits
-
-
-\centerline{**********}
+There are few effective methods for storing trits. In this paper, we focus on three of them: the naive method, arithmetic coding, and our succincter implementation.\\
+The naive method is simple. As a trit has more information than a bit, but less than two bits, store each trit using two bits. Obviously this is not the most space-efficient method, you could encode $\frac{4}{3}$ as much information in the same space, so it is clearly wasteful. It is however, very fast, both on encode and decode. Encode is strictly linear, with very small constants. The encoder we used took 3.9 milliseconds to encode 500000 entries, and 13.7 milliseconds to decode 500000 entries.\\
+Arithmetic coding is much more effective at reducing size. By reducing the entries to one number, we can encode in exactly $n*log_2(3) + c$, where c is the 
 
 \noindent \section{Implementation}
 
