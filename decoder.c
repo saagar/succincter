@@ -95,7 +95,7 @@ int decode_one(void)
 			mpz_fdiv_q_ui(number, number, headers[i].K);
 		} 
 		mpz_fdiv_r_ui(number, number, headers[i].K);
-		num =  mpz_get_ui(number);
+		num = mpz_get_ui(number);
 	}
 	return num;
 }
@@ -148,9 +148,12 @@ void extract_data(void)
 	{
 		remainders[i] = malloc(sizeof(mpz_t)*headers[i + 1].size);
 		for(int j = 0; j < headers[i + 1].size; j++)
-			mpz_inp_raw(remainders[i][j], input);
+		{
+			unsigned int remains;
+			fread(&remains, sizeof(unsigned int), 1, input);
+			mpz_init_set_ui(remainders[i][j], remains);
+		}
 	}
-	
 	extract_last(headers[levels]);
 }
 
