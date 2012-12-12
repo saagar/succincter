@@ -77,7 +77,7 @@
 \centerline{**********}
 
 \noindent \section{Abstract}
-Using Mihai Patrascu's 2008 paper "Succincter" [1],  we implement a way to store trits (trinary values) within 1.01\% of the ideal space of $n*log_2(3)$ while having lookup in $O(t)$ time, where $t$ is the depth of our data structure. We find that this is both a fast and space efficient data structure with room for extension past simply storing trits.
+Using Mihai Patrascu's 2008 paper "Succincter" [1],  we implement a way to store trits (trinary values) within 1.01\% of the ideal space of $n*log_2(3)$ while having lookup in $O(t)$ time, where $t$ is the depth of our data structure. We use recursion to improve redundancy in the data structure, which allows us to accurately compute single decodes quickly without needing to decode the entire compressed block first. We find that this is both a fast and space efficient robust data structure for encoding and decoding operations with room for extension past simply storing trits.
 
 \noindent \section{Introduction}
 
@@ -120,7 +120,7 @@ while(counter < headers[level].size)\\
 \indent m = number \% 2^M;\\
 \indent fwrite(output, m);\\
 \indent index++;\\
-return$ $Encode(new\_array, level + 1);$\\\\
+return$ $Encode(new\_array, level + 1);$\\\\\\
 
 \noindent Encode\_last(array, header):\\
 $counter = 0;\\
@@ -186,9 +186,9 @@ for(i = levels - 1; i >=0; i--) \\
 \indent \indent number = number / headers[i].K;\\
 \indent number = number / headers[i].K;\\
 \indent num = number;\\
-return$ $num;$
+return$ $num;$\\
 
-
+The full encoding and decoding files are in the Appendix.
 
 
 \bigskip
@@ -201,9 +201,9 @@ We ran our implementation of Succincter on 500000 trits except in the case of in
 \includegraphics[scale=0.4]{images/lvl_encodingsize}
 \afterpage{\vfill}
 
-Initially, we compared the speed of encoding and decoding at each level as well as the space required for the encoding process. We noticed that the encoding time is relatively similar for each of the levels we run Succincter on, with level 4 edging the others by an insignificant amount. This indicates that the time taken is relatively the same for any level of encoding. The reason that we see the high levels of encoding to be slightly faster is because the last layer of values need to be specially encoded from their current base to bits. For the lower levels, this is a more expensive process as the number of values left to be specially encoded in larger. However, this time is still largely insignificant for large sets of values. \\
+Initially, we compared the speed of encoding and decoding using multiple depths for the data structure as well as the space required for the encoding process. We noticed that the encoding time is relatively similar for each of the depths we run Succincter on, with level 4 edging the others by an insignificant amount. This indicates that the time taken is relatively similar for any depth of structure. One likely reason is the fact that the maximum useful depth is log$(n)$, as we divide the size down each level by the block size, and an array with a size of 1 should just be encoded wasting the one bit. The reason that we see the high levels of encoding to be slightly faster is because the last layer of values need to be specially encoded from their current base to bits. For the lower levels, this is a more expensive process as the number of values left to be specially encoded is much larger. However, this time is still largely insignificant for large sets of values. \\
 
-This reasoning for the encoding time also extends to the average encoding sizes we see in our experimentation. We see that as the level increases, we have an immediate decrease in size from level 1 to level 2, and after that the size remains roughly the same. This indicates that the size of the encoded data will remain the same for any level past level 1, which makes the data structure extremely scalable in both time and space. 
+This reasoning for the encoding time also extends to the average encoding sizes we see in our experimentation. We see that as the level increases, we have an immediate decrease in size from level 1 to level 2, and after that the size remains roughly the same. This likely indicates that the size of the encoded data will remain close to the same for any level past level 1 given this size of input, though it is very possible that with larger inputs higher level caps become more effective. 
 
 \begin{center}\smallskip
     \begin{tabular}{ | c | c | c | c |}
@@ -221,27 +221,38 @@ This reasoning for the encoding time also extends to the average encoding sizes 
 \includegraphics[scale=0.4]{images/individual_decodetime}
 \afterpage{\vfill}
 
-Looking at decoding across each level, we notice that the average decoding times are very similar, with a slight decrease as the level increases. The change is too small to be of much statistically interest, leading us to believe that the decode time is essentially the same for each level on average. We can get a better sense of this by looking at the individual decoding time scatter plot. Here, it appears that in the majority of cases, both level 2 and level 4 decoding are roughly the same time. The red scatter mass on the left and the blue scatter mass on the left seem to be noise in the system. However, on second examination, it is possible that level 4 decoding is slight slower on the early values in the input while level 2 decoding is slight slower on the later values in the input. This scenario may occur because large numbers will have been reduced significantly by level 4, making them easier to decode using the spillover decoding algorithm.\\
+Looking at decoding across each level, we notice that the average decoding times are very similar, with a slight decrease as the level cap increases. The change is too small to be of much statistically interest, leading us to believe that the decode time is essentially the same for each depth on average. We can get a better sense of this by looking at the individual decoding time scatter plot. Here, it appears that in the majority of cases, both level 2 and level 4 decoding are roughly the same time. The red scatter mass on the left and the blue scatter mass on the right seem to be noise in the system. There does seem to be much longer times for level 2 for larger values, and longer times for level 4 on smaller individual values, but a good explanation for why that would be the case is elusive.\\
 
 \includegraphics[scale=0.4]{images/decoding_time}
 \includegraphics[scale=0.4]{images/individual_decode_20000}
 \afterpage{\vfill}
 
-In general, it appears that decoding is not impacted by the level of encoding used on the input string, and the only factor we will have to worry about when decoding is the the length of the input string. Of some more importance is the time required to decode. We compared the decoding time for the three implementations mentioned earlier, the naive trit to bit translation, the simple arithmetic encoder, and our Succincter model. We noticed that the naive method is definitely the faster of the three, which intuitively makes sense because each trit is stored in its full bit form. Succincter is extremely close in speed to the naive decoder; this means that we can encode information and store it in a more compact form than the naive method while still having similar decoding times across the entire input. Succincter handles the arithmetic encoder time with ease; it appears that as the length of the input increases, the arithmetic decoder grows in polynomial time, while the Succincter implementation barely grows at all. Because we use similar, or even less, space than the arithmetic encoding scheme, Succincter seems to be a viable replacement for arithmetic encoding if properly implemented. \\
-\indent While we look at the average decoding time, it may be helpful to take note of the individual decoding time. Once again, we see that the naive method is the best one; for any individual trits, we require no calculation and can simple covert the number of bits we see into trits. Once again, Succincter is able to match the individual decoding time because of the properties of the spillover algorithm and universe as defined in the Patrascu paper. Arithmetic decoding of individual trits requires the entire string to be decoded first, which seems to end up slowing down the arithmetic decoder a lot, leading to the logarthimic curve seen in the graph above.
+In general, it appears that decoding is not impacted by the level of encoding used on the input string, and the only factor we will have to worry about when decoding is the the length of the input string. Of some more importance is the time required to decode. We compared the decoding time for the three implementations mentioned earlier, the naive trit to bit translation, the simple arithmetic encoder, and our Succincter model. We noticed that the naive method is definitely the fastest of the three, which intuitively makes sense because each trit is stored in its full bit form. Succincter is within a factor of 3 in speed to the naive decoder; which, while not great, can be seen as a necessary tradeoff for the improved efficiency. This means that we can encode information and store it in a more compact form than the naive method while still having similar decoding times across the entire input. Succincter handles the arithmetic encoder time with ease; it appears that as the length of the input increases, the arithmetic decoder grows in polynomial time, while the Succincter implementation barely grows at all. Because we use similar, or even less, space than the arithmetic encoding scheme, Succincter seems to be a viable replacement for arithmetic encoding if properly implemented. It is also possible however, that our arithmetic encoder was not quite of the same quality, and we could find (or make) one that would be better competition with Succincter. Especially since theoretically, the decode time should be on the same order.\\
+\indent The area that Succincter should be asymptotically faster than arithmetic coding is in individual decoding time. Arithmetic coding should run in linear time, while the naive approach and Succincter should be constant time algorithms. Once again, we see that the naive method is the fastest one; for any individual trits, we require no calculation and can simple covert the number of bits we see into trits. Succincter takes 300 times as long, to decode each individual, but still takes less than a millisecond to run. Succincter is able to stay within the constant arithmetic bounds for individual decoding time because of the properties of the spillover algorithm and universe as defined in the Patrascu paper. Arithmetic decoding of individual trits requires the entire string to be decoded first, which seems to end up slowing down the arithmetic decoder a lot, leading to the logarthimic curve seen in the graph above.
 
 
 \includegraphics[scale=0.4]{images/encoding_time}
 \includegraphics[scale=0.4]{images/encoding_size}
 \afterpage{\vfill}
 
-We also compared the encoding times and encoding sizes of the three approaches. The naive takes the least amount of time to encode, which is obvious as there is no real computation to be done for the encoding process. Succincter is only marginally slower than the naive progress, and it appears that both naive and Succincter have a much small slope of growth when compared to the arithmetic encoder. All three algorithms grow linearly with the size of the input string; this is true because when a new character is presented, we act on it when it appears, so we only need to read the input string one time for each implementation in order to encode it. Based on encoding time, Succincter beats arithmetic encoding by more than a factor of 2 at the longer lengths tested.\\
+We also compared the encoding times and encoding sizes of the three approaches. The naive takes the least amount of time to encode, which is obvious as there is no real computation to be done for the encoding process. Succincter is only marginally slower than the naive progress, and it appears that both naive and Succincter have a much small slope of growth when compared to the arithmetic encoder. All three algorithms grow linearly with the size of the input string; this is true because when a new character is presented, we act on it when it appears, so we only need to read the input string one time for each implementation in order to encode it. Based on encoding time, Succincter beats arithmetic encoding by more than a factor of two on average, and naive encoding beats Succincter by more than a factor of two on average.\\
 
 When we look at the encoding size, it is immediately apparent that the naive approach requires the most space. Each trit in the string is stored in its entirety as bits, so there is no change to encode and compress the information. When we compare Succincter and arithmetic coding, both are better compressed than naive, with Succincter just slightly performing better at longer string lengths. \\
 
-Looking just at encoding time and size, we see that Succincter is the best overall algorithm to use. In terms of encoding time, Succincter is comparable to the faster naive implementation, while in terms of encoding size, Succincter is comparable to the arithmetic encoder implementation. This allows us to have both speed and compression without loss of one or the other. Furthermore, looking at decode time, Succinctur has relatively quick decoding times for both the entire string and for individual decoding. The individual decoding aspect makes Succinctur especially powerful because it is now possible to look up any single trit in the string without having to spend the total time to decode the entire encoded string. Arithmetic decoders require the entire encoded string to be decoded before an answer can be found; this is not true with Succinctur.
+Looking just at encoding time and size, we see that Succincter is an effective algorithm to use. In terms of encoding time, Succincter is comparable, though worse to the faster naive implementation, while in terms of encoding size, Succincter is comparable to the arithmetic encoder implementation. 
 
 \noindent \section{Conclusion}
+
+Succincter seems like an effective algorithm to use for while naive implementation is much faster on the whole, there are obviously data sets where Succincter could prove useful. Datasets that have plenty of space and need to be fast would be better served by using the naive approach, though the space limited user should use Succincter. Succincter allows us to have both speed and compression without major losses of one or the other. Furthermore, looking at decode time, Succincter has relatively quick decoding times for both the entire string and for individual decoding. The individual decoding aspect makes Succincter especially powerful because it is now possible to look up any single trit in the string without having to spend the total time to decode the entire encoded string. Arithmetic decoders require the entire encoded string to be decoded before an answer can be found; this is not true with Succincter.\\
+
+Additional steps to be taken are clearly test to our structure against a better arithmetic encoder, and see how the times compare. Spacewise, even a perfect arithmetic encoder could not improve much on our structure, as the ideal $n*log_2(3)$ space for $n = 500000$ is 99060 bytes; Succincter used 100066 bytes. Our time comparisons however, do not accurately represent a fully functioning arithmetic encoder, and so to understand the true utility of the structure, it would be useful to have an upper time bound.
+
+Further (assuming this structure does stand the test of time) it can be applied to any time an arithmetic coder could be used. Assuming the arithmetic encoder uses rational numbers for its probabilities, the lowest common denominator of the probabilities could be used as the base for the first level of the data structure. Take the example where the probabilities are ('a' = .4,  'b' = .1, 'c' = .5). Multiplying by ten, it's clear these numbers could all be treated as numbers base ten, ('a' = 0,1,2,3, 'b' = 4, 'c' = 5,6,7,8,9). So to encode, take the integer values of the string as the initial array, and the size to be the length of the string, and with that you can encode and decode just as effectively as with arithmetic encoding.
+
+\bigskip
+\centerline{**********}
+\noindent \section{Acknowledgements}
+	We would like to thank Micheal Mitzenmacher for inspiring this project.
 
 \bigskip
 \centerline{**********}
