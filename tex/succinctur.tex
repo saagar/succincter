@@ -77,7 +77,7 @@
 \centerline{**********}
 
 \noindent \section{Abstract}
-Using Mihai Patrascu's 2008 paper "Succincter" [1],  we implement a way to store trits (trinary values) within 1.01\% of the ideal space of $n*log_2(3)$ while having lookup in $O(t)$ time, where $t$ is the depth of our data structure. We find that this is both a fast and space efficient data structure with room for extension past simply storing trits.
+Using Mihai Patrascu's 2008 paper "Succincter" [1],  we implement a way to store trits (trinary values) within 1.01\% of the ideal space of $n*log_2(3)$ while having lookup in $O(t)$ time, where $t$ is the depth of our data structure. We use recursion to improve redundancy in the data structure, which allows us to accurately compute single decodes quickly without needing to decode the entire compressed block first. We find that this is both a fast and space efficient robust data structure for encoding and decoding operations with room for extension past simply storing trits.
 
 \noindent \section{Introduction}
 
