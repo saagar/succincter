@@ -210,15 +210,23 @@ Looking just at encoding time and size, we see that Succincter is the best overa
 \noindent \section{References}
 Patrascu, Mihai. Succincter. 49th IEEE Symposium on Foundations of Computer Science. 2008.
 
-\noindent \section*{Appendix}
+\noindent \section{Appendix}
+\noindent \subsection{Succincter Code}
 
-%\lstinputlisting[language=C,label=problem4,caption=Code for Problem 4]{../succinct_code/encoder.c}
+\lstinputlisting[language=C,label=encoder,caption=Succincter Encoder]{../succinct_code/encoder.c}
 
-%\begin{lstlisting}[language=java,label=some-code,caption=Some Code]
-% Connection db = DriverManager.getConnection("jdbc:h2:rel.db", "user", "pass");
-%  Statement stmt = db.createStatement();
-%  stmt.execupdate("INSERT INTO CAMPAIGN VALUES ('C1R1R2R3R4R5R6', 1234, 1170, 1189, 1934)");
-%\end{lstlisting}
+\lstinputlisting[language=C,label=decoder,caption=Succincter Decoder]{../succinct_code/decoder.c}
+
+\noindent \subsection{Full Size Images}
+\includegraphics[scale=0.8]{images/betterlevel_v_encode}\\
+\includegraphics[scale=0.8]{images/lvl_encodingsize}\\
+\includegraphics[scale=0.8]{images/betterlevel_v_decode}\\
+\includegraphics[scale=0.8]{images/individual_decodetime}\\
+\includegraphics[scale=0.8]{images/decoding_time}\\
+\includegraphics[scale=0.8]{images/individual_decode_20000}\\
+\includegraphics[scale=0.8]{images/encoding_time}\\
+\includegraphics[scale=0.8]{images/encoding_size}\\
+
 \end{document}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
