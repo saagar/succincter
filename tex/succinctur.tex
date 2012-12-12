@@ -101,24 +101,46 @@ Once the headers are found, we can begin to encode the actual data. We encode re
 
 \noindent \section{Results and Analysis}
 
-\includegraphics[scale=0.4]{images/decoding_time}
-\includegraphics[scale=0.4]{images/individual_decode_20000}
-\afterpage{\vfill}
-asdfaksdjf;aksldfjadsf\\
-
-\includegraphics[scale=0.4]{images/betterlevel_v_decode}
-\includegraphics[scale=0.4]{images/individual_decodetime}
-\afterpage{\vfill}
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
+We ran our implementation of Succincter on 500000 trits except in the case of individual decoding, where we only use 200000 trits. We compared this implementation against a simple C implementation of arithmetic encoding as well as a naive C implementation of a trit to bit converter, which stores each trit as its corresponding bit.
 
 \includegraphics[scale=0.4]{images/betterlevel_v_encode}
 \includegraphics[scale=0.4]{images/lvl_encodingsize}
 \afterpage{\vfill}
 
+Initially, we compared the speed of encoding and decoding at each level as well as the space required for the encoding process. We noticed that the encoding time is relatively similar for each of the levels we run Succincter on, with level 4 edging the others by an insignificant amount. This indicates that the time taken is relatively the same for any level of encoding. The reason that we see the high levels of encoding to be slightly faster is because the last layer of values need to be specially encoded from their current base to bits. For the lower levels, this is a more expensive process as the number of values left to be specially encoded in larger. However, this time is still largely insignificant for large sets of values. \\
+
+This reasoning for the encoding time also extends to the average encoding sizes we see in our experimentation. We see that as the level increases, we have an immediate decrease in size from level 1 to level 2, and after that the size remains roughly the same. This indicates that the size of the encoded data will remain the same for any level past level 1, which makes the data structure extremely scalable in both time and space. 
+
+\begin{center}\smallskip
+    \begin{tabular}{ | c | c | c | c |}
+    \hline
+    Level & Avg. Encode Time (sec) & Avg. Decode Time (sec) & Avg. Encode Size (bytes) \\ \hline
+    1 & 0.00178906 & 0.043107825396825 & 101229\\
+    2 & 0.00177046 & 0.041240047619048 & 100108\\
+    3 & 0.00173798 & 0.041672920634921 & 100066\\
+    4 & 0.00173344 & 0.041674126984127 & 100076\\
+    5 & 0.00175082 & 0.040755396825397 & 100088\\ \hline
+    \end{tabular}
+\end{center}
+
+
+
+\includegraphics[scale=0.4]{images/betterlevel_v_decode}
+\includegraphics[scale=0.4]{images/individual_decodetime}
+\afterpage{\vfill}
+
+asdfaksdjf;aksldfjadsf\\
+asdfaksdjf;aksldfjadsf\\
+asdfaksdjf;aksldfjadsf\\
+
+
+\includegraphics[scale=0.4]{images/decoding_time}
+\includegraphics[scale=0.4]{images/individual_decode_20000}
+\afterpage{\vfill}
+
+asdfaksdjf;aksldfjadsf\\
+asdfaksdjf;aksldfjadsf\\
+asdfaksdjf;aksldfjadsf\\
 asdfaksdjf;aksldfjadsf\\
 
 \includegraphics[scale=0.4]{images/encoding_time}
