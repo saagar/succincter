@@ -99,43 +99,63 @@ Once the headers are found, we can begin to encode the actual data. We encode re
 
 Eventually level will equal LEVELS, and when it does, we naively code the array: we figure out how many bits it takes to completely store a number base $K$, and store each number in the array using that many bits. \\
 
-We put in an output file the SIZE, LEVELS, and M, write all the headers to the file, then write out all the bits for the last level of storage. \\\\
+We put in an output file the SIZE, LEVELS, and M, write all the headers to the file, then write out all the bits for the last level of storage. \\
 
-Encode(array, :
-	if (level = LEVELS OR headers[level].size = 1)
-	{	
-		encode_last(array, h);
-	}
-	int counter = 0;
-	int index = 0;
-	int new_array[];
-	string total;
-	if(total == NULL)
-	{
-		printf("ERROR!\n");
-		exit(1);
-	}
-	char* start = total;
-	while(counter < h.size)
-	{
-		
-		for (int i = 0; i < h.chunksize; i++)
-		{
-				total[i] = array[counter] + '0';
-				counter++;
-		}
-		mpz_set_str(number, total, h.K);
-		mpz_fdiv_qr(k,m,number,divisor);
-		if(mpz_sgn(k))
-			allzeroes = 0;
-		new_array[index] = mpz_get_ui(k);
-		unsigned int remains = mpz_get_ui(m);
-		fwrite(&remains, sizeof(unsigned int), 1, output);
-		index++;
-	
-	}
-	free(start);
-	return encode(new_array, level + 1);
+\noindent Encode(array, level):\\
+$if (level = LEVELS$ $OR$ $headers[level].size = 1)\\
+\{	\\
+\indent encode\_last(array, headers[level]);\\
+\}\\
+counter = 0;\\
+index = 0;\\
+new\_array[];\\
+string total;\\
+while(counter < headers[level].size)\\
+\{\\
+\indent for (int i = 0; i < headers[level].chunksize; i++)\\
+\indent \{\\
+\indent \indent total[i] = array[counter];\\
+\indent \indent counter++;\\
+\indent \}\\
+\indent number = num\_from\_string(total, base$ $h.K);\\
+\indent number = number / 2^M;\\
+\indent new\_array[index] = number / 2^M;\\
+\indent m = number \% 2^M;\\
+\indent fwrite(output, m);\\
+\indent index++;\\
+\}\\
+return$ $Encode(new\_array, level + 1);$\\\\
+
+\noindent Encode\_last(array, header):\\
+$counter = 0;\\
+while (header.K > 0)\\
+\{\\
+\indent header.K = header.K / 2;\\
+\indent counter++;\\
+\}	\\
+cycler = 1;\\
+byte = 0;\\
+for(int i = 0; i < header.size; i++)\\
+\{\\
+\indent int k = 1;\\
+\indent for(int j = 0; j < counter; j++)\\
+\indent \{\\
+\indent \indent if(k \& array[i])\\
+\indent \indent \{\\
+\indent \indent \indent byte = byte | cycler;\\
+\indent \indent \}\\
+\indent \indent k = 2*k;\\
+\indent \indent cycler = 2*cycler;\\
+\indent \indent if (cycler = 2^8)\\
+\indent \indent \{\\
+\indent \indent \indent fwrite(output, byte);\\
+\indent \indent \indent byte = 0;\\
+\indent \indent \indent cycler = 1;\\
+\indent \indent \}\\
+\indent \}\\
+\}\\
+fwrite(output,byte);\\
+return;\\$
 
 \noindent\emph{DECODING}\\
 For both decoding schemes, we first need to read and interpret the input file, which is done essentially in reverse of encoding, taking SIZE, LEVELS, and M to be global variables, as well as the headers array, an array of all the remainders, and the last array that was encoded.\\
