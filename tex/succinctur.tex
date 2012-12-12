@@ -86,16 +86,28 @@ Using Mihai Patrascu's 2008 paper "Succincter" [1],  we implement a way to store
 \indent Mihai Patrascu outlined the idea of succinter data structures in [1], but we took some liberties with our implementation, as his approaches to finding block size and $K$ proved less useful in practice than they might have been in theory.
 
 \noindent \section{Implementation}
-To encode, we start with an array with fixed size of trits with pseudorandomly assigned values. For the sake of simplicity, and the fact that the values of the trits do not particularly matter for our inquiry, we used the $c$ standard library rand() function seeded by the time of running. \\\\
+\emph{ENCODING}\\
+To encode, we start with an array with fixed size of trits with pseudorandomly assigned values. For the sake of simplicity, and the fact that the values of the trits do not particularly matter for our inquiry, we used the $c$ standard library rand() function seeded by the time of running. \\
 
-We also decided that all remainders would be up to 32 bits long, which for the sake of discussion we will refer to as $M$.\\\\
+We also decided that all remainders would be up to 32 bits long, which for the sake of discussion we will refer to as $M$.\\
 
-With the size of the array and the base 3, we construct the necessary headers to be used by the decoder, specifically the size of the array at that level, the base at that level, and the block size at that level. \\\\
+With the size of the array and the base 3, we construct the necessary headers to be used by the decoder, specifically the size of the array at that level, the base at that level, and the block size at that level. \\
 
-Given the size and base, the header of all levels are constructable. We are trying to fill an array of size LEVELS (an arbitrary constant we the user decide) + 1 with the size for that level, the block size fro that level, and the base for that level. We find an $n$ such that our new $K = \lceil \frac{3^n}{2^M} \rceil > 2$. $n$ is the block size for the level, the base for the level is the old $K$, and the size for the level is the old size. The variables then update, with old $K$ being set to new $K$, size decreasing by a factor chunksize, and we are back where we started, just a level higher up the headers.\\\\
+Given the size and base, the header of all levels are constructable. We are trying to fill an array of size LEVELS (an arbitrary constant we the user decide) + 1 with the size for that level, the block size fro that level, and the base for that level. In the context of this paper, we will call this array headers. We find an $n$ such that our new $K = \lceil \frac{3^n}{2^M} \rceil > 2$. $n$ is the block size for the level, the base for the level is the old $K$, and the size for the level is the old size. The variables then update, with old $K$ being set to new $K$, size decreasing by a factor chunksize, and we are back where we started, just a level higher up the headers.\\
 
-Once the headers are found, we can begin to encode the actual data. We encode recursively, starting from the bottom level = 0 and continuing until level equals LEVELS. 
+Once the headers are found, we can begin to encode the actual data. We encode recursively, starting from the bottom level = 0 and continuing until level equals LEVELS. To encode, we are given an array to encode, we take the first headers[level].chunksize entries, and combine them into one large number. We then divide by $2^M$, store the remainder, and pass the quotient to a new array we're building for the next level. We do this for each block, and when we reach the end of our entries, we call decode again, on the new array, with level increased.\\
 
+Eventually level will equal LEVELS, and when it does, we naively code the array: we figure out how many bits it takes to completely store a number base $K$, and store each number in the array using that many bits. \\
+
+We put in an output file the SIZE, LEVELS, and M, write all the headers to the file, then write out all the bits for the last level of storage. \\\\
+
+\noindent\emph{DECODING}\\
+For both decoding schemes, we first need to read and interpret the input file, which is done essentially in reverse of encoding, taking SIZE, LEVELS, and M to be global variables, as well as the headers array, an array of all the remainders, and the last array that was encoded.
+
+\indent \textbf{Decode All}
+We are given an array (to start with, the last arrray), and that we are on the highest level, and with that and the global variables, we can decode every original entry in the right order. To do this, we take the remainder corresponding to the index in the array the level below. 
+
+\indent \textbf{Decode One}
 
 \bigskip
 
@@ -154,6 +166,8 @@ asdfaksdjf;aksldfjadsf\\
 
 \bigskip
 \centerline{**********}
+
+\noindent \section{References}
 
 
 \noindent \section*{Appendix}
