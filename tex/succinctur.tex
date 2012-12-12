@@ -33,20 +33,20 @@
 
 
 % Document Specific Information
-\newcommand{\Title}{Succinctur}
-\newcommand{\Date}{Wednesday,\ December\ 11,\ 2012}
+\newcommand{\Title}{Succincter}
+\newcommand{\Date}{Tues.,\ December\ 11,\ 2012}
 \newcommand{\Class}{Computer Science 222}
 \newcommand{\ClassTime}{}
 \newcommand{\ClassInstructor}{Professor Mitzenmacher}
-\newcommand{\AuthorName}{By Dan Bradley (dbradley@college), Saagar Deshpande (sdeshpande@college)}
+\newcommand{\AuthorName}{Dan Bradley (dbradley@college), Saagar Deshpande (sdeshpande@college)}
 
 % Setup the header and footer
 \pagestyle{fancy}                                                       %
-\lhead{\AuthorName}                                                 %
+\lhead{Bradley, Deshpande}                                                 %
 %\chead{\Class\ (\ClassInstructor\ \ClassTime): \Title}  %
-\chead{\Class\ : \Title}  %
+\chead{\Title}  %
 \rhead{\Date}                                                     %
-\lfoot{\lastxmark}                                                      %
+\lfoot{\lastxmark \Class}                                                      %
 \cfoot{}                                                                %
 \rfoot{Page\ \thepage\ of\ \pageref{LastPage}}                          %
 \renewcommand\headrulewidth{0.4pt}                                      %
@@ -74,22 +74,34 @@
 \noindent \section*{Abstract}
 
 
-\centerline{**********}
+\noindent \section{Introduction}
 
-\noindent \section*{Background}
 
-\centerline{**********}
-
-\noindent \section*{Section 1}
+\noindent \section{Implementation}
 
 
 \bigskip
-\centerline{**********}
 
-\noindent \section*{Section 2}
+\noindent \section{Results and Analysis}
+
+\begin{figure}[htb]
+\centering
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.4]{images/decoding_time}
+  \captionof{figure}{A figure}
+  \label{fig:test1}
+\end{minipage}%
+\begin{minipage}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.4]{images/encoding_time}
+  \captionof{figure}{Another figure}
+  \label{fig:test2}
+\end{minipage}
+\end{figure}
+
 
 \bigskip
-\centerline{**********}
 
 \noindent \section*{Conclusion}
 
