@@ -71,6 +71,8 @@
 
 \maketitle
 
+\tableofcontents
+
 \bigskip
 \centerline{**********}
 
@@ -86,7 +88,7 @@ Using Mihai Patrascu's 2008 paper "Succincter" [1],  we implement a way to store
 \indent Mihai Patrascu outlined the idea of succinter data structures in [1], but we took some liberties with our implementation, as his approaches to finding block size and $K$ proved less useful in practice than they might have been in theory.
 
 \noindent \section{Implementation}
-\emph{ENCODING}\\
+\noindent \subsection{Encoding}
 To encode, we start with an array with fixed size of trits with pseudorandomly assigned values. For the sake of simplicity, and the fact that the values of the trits do not particularly matter for our inquiry, we used the $c$ standard library rand() function seeded by the time of running. \\
 
 We also decided that all remainders would be up to 32 bits long, which for the sake of discussion we will refer to as $M$.\\
@@ -101,49 +103,49 @@ Eventually level will equal LEVELS, and when it does, we naively code the array:
 
 We put in an output file the SIZE, LEVELS, and M, write all the headers to the file, then write out all the bits for the last level of storage. \\\\
 
-Encode(array, :
-	if (level = LEVELS OR headers[level].size = 1)
-	{	
-		encode_last(array, h);
-	}
-	int counter = 0;
-	int index = 0;
-	int new_array[];
-	string total;
-	if(total == NULL)
-	{
-		printf("ERROR!\n");
-		exit(1);
-	}
-	char* start = total;
-	while(counter < h.size)
-	{
-		
-		for (int i = 0; i < h.chunksize; i++)
-		{
-				total[i] = array[counter] + '0';
-				counter++;
-		}
-		mpz_set_str(number, total, h.K);
-		mpz_fdiv_qr(k,m,number,divisor);
-		if(mpz_sgn(k))
-			allzeroes = 0;
-		new_array[index] = mpz_get_ui(k);
-		unsigned int remains = mpz_get_ui(m);
-		fwrite(&remains, sizeof(unsigned int), 1, output);
-		index++;
-	
-	}
-	free(start);
-	return encode(new_array, level + 1);
+%Encode(array, :
+%	if (level = LEVELS OR headers[level].size = 1)
+%	{	
+%		encode_last(array, h);
+%	}
+%	int counter = 0;
+%	int index = 0;
+%	int new_array[];
+%	string total;
+%	if(total == NULL)
+%	{
+%		printf("ERROR!\n");
+%		exit(1);
+%	}
+%	char* start = total;
+%	while(counter < h.size)
+%	{
+%		
+%		for (int i = 0; i < h.chunksize; i++)
+%		{
+%				total[i] = array[counter] + '0';
+%				counter++;
+%		}
+%		mpz_set_str(number, total, h.K);
+%		mpz_fdiv_qr(k,m,number,divisor);
+%		if(mpz_sgn(k))
+%			allzeroes = 0;
+%		new_array[index] = mpz_get_ui(k);
+%		unsigned int remains = mpz_get_ui(m);
+%		fwrite(&remains, sizeof(unsigned int), 1, output);
+%		index++;
+%	
+%	}
+%	free(start);
+%	return encode(new_array, level + 1);
 
-\noindent\emph{DECODING}\\
+\noindent \subsection{Decoding}
 For both decoding schemes, we first need to read and interpret the input file, which is done essentially in reverse of encoding, taking SIZE, LEVELS, and M to be global variables, as well as the headers array, an array of all the remainders, and the last array that was encoded.\\
 
-\indent \textbf{Decode All:}
+\noindent \subsubsection{Decode All}
 We are given an array (to start with, the last arrray), and that we are on the highest level, and with that and the global variables, we can decode every original entry in the right order. To do this, we go through the array with index, take the remainder corresponding to the index in and find remainders[current\_level - 1][index] + $2^M$*array[index]. This is the same number we created by amalgamating each block in the encoder. To get the array for the next level down, we simply divide the number by the base of the next level down, and place each remainder in a new array. If we go through the entire array like this, we can traverse the data structure level by level passing new array and the current level, and eventually decode the entire structure. \\
 
-\indent \textbf{Decode One:}
+\noindent \subsubsection{Decode One}
 Decoding one value alone is a more difficult endeavor. We need to determine the path of remainders and array values to follow from the highest level to the lowest. 
 To do this, we can simply find where in the completely decoded array the item would be, and then by using the headers, we find where in each block the number would be, and where in the highest level's array the object to be decoded is.
 
@@ -194,8 +196,11 @@ In general, it appears that decoding is not impacted by the level of encoding us
 \includegraphics[scale=0.4]{images/encoding_size}
 \afterpage{\vfill}
 
-asdfaksdjf;aksldfjadsf\\
+We also compared the encoding times and encoding sizes of the three approaches. The naive takes the least amount of time to encode, which is obvious as there is no real computation to be done for the encoding process. Succincter is only marginally slower than the naive progress, and it appears that both naive and Succincter have a much small slope of growth when compared to the arithmetic encoder. All three algorithms grow linearly with the size of the input string; this is true because when a new character is presented, we act on it when it appears, so we only need to read the input string one time for each implementation in order to encode it. Based on encoding time, Succincter beats arithmetic encoding by more than a factor of 2 at the longer lengths tested.\\
 
+When we look at the encoding size, it is immediately apparent that the naive approach requires the most space. Each trit in the string is stored in its entirety as bits, so there is no change to encode and compress the information. When we compare Succincter and arithmetic coding, both are better compressed than naive, with Succincter just slightly performing better at longer string lengths. \\
+
+Looking just at encoding time and size, we see that Succincter is the best overall algorithm to use. In terms of encoding time, Succincter is comparable to the faster naive implementation, while in terms of encoding size, Succincter is comparable to the arithmetic encoder implementation. This allows us to have both speed and compression without loss of one or the other. Furthermore, looking at decode time, Succinctur has relatively quick decoding times for both the entire string and for individual decoding. The individual decoding aspect makes Succinctur especially powerful because it is now possible to look up any single trit in the string without having to spend the total time to decode the entire encoded string. Arithmetic decoders require the entire encoded string to be decoded before an answer can be found; this is not true with Succinctur.
 
 \noindent \section{Conclusion}
 
@@ -208,8 +213,6 @@ Patrascu, Mihai. Succincter. 49th IEEE Symposium on Foundations of Computer Scie
 \noindent \section*{Appendix}
 
 %\lstinputlisting[language=C,label=problem4,caption=Code for Problem 4]{../succinct_code/encoder.c}
-
-%\lstinputlisting[language=java,label=problem5,caption=Code for Problem 5]{countmin.java}
 
 %\begin{lstlisting}[language=java,label=some-code,caption=Some Code]
 % Connection db = DriverManager.getConnection("jdbc:h2:rel.db", "user", "pass");
