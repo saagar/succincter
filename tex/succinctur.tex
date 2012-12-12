@@ -101,13 +101,54 @@ Eventually level will equal LEVELS, and when it does, we naively code the array:
 
 We put in an output file the SIZE, LEVELS, and M, write all the headers to the file, then write out all the bits for the last level of storage. \\\\
 
+Encode(array, :
+	if (level = LEVELS OR headers[level].size = 1)
+	{	
+		encode_last(array, h);
+	}
+	int counter = 0;
+	int index = 0;
+	int new_array[];
+	string total;
+	if(total == NULL)
+	{
+		printf("ERROR!\n");
+		exit(1);
+	}
+	char* start = total;
+	while(counter < h.size)
+	{
+		
+		for (int i = 0; i < h.chunksize; i++)
+		{
+				total[i] = array[counter] + '0';
+				counter++;
+		}
+		mpz_set_str(number, total, h.K);
+		mpz_fdiv_qr(k,m,number,divisor);
+		if(mpz_sgn(k))
+			allzeroes = 0;
+		new_array[index] = mpz_get_ui(k);
+		unsigned int remains = mpz_get_ui(m);
+		fwrite(&remains, sizeof(unsigned int), 1, output);
+		index++;
+	
+	}
+	free(start);
+	return encode(new_array, level + 1);
+
 \noindent\emph{DECODING}\\
-For both decoding schemes, we first need to read and interpret the input file, which is done essentially in reverse of encoding, taking SIZE, LEVELS, and M to be global variables, as well as the headers array, an array of all the remainders, and the last array that was encoded.
+For both decoding schemes, we first need to read and interpret the input file, which is done essentially in reverse of encoding, taking SIZE, LEVELS, and M to be global variables, as well as the headers array, an array of all the remainders, and the last array that was encoded.\\
 
-\indent \textbf{Decode All}
-We are given an array (to start with, the last arrray), and that we are on the highest level, and with that and the global variables, we can decode every original entry in the right order. To do this, we take the remainder corresponding to the index in the array the level below. 
+\indent \textbf{Decode All:}
+We are given an array (to start with, the last arrray), and that we are on the highest level, and with that and the global variables, we can decode every original entry in the right order. To do this, we go through the array with index, take the remainder corresponding to the index in and find remainders[current\_level - 1][index] + $2^M$*array[index]. This is the same number we created by amalgamating each block in the encoder. To get the array for the next level down, we simply divide the number by the base of the next level down, and place each remainder in a new array. If we go through the entire array like this, we can traverse the data structure level by level passing new array and the current level, and eventually decode the entire structure. \\
 
-\indent \textbf{Decode One}
+\indent \textbf{Decode One:}
+Decoding one value alone is a more difficult endeavor. We need to determine the path of remainders and array values to follow from the highest level to the lowest. 
+To do this, we can simply find where in the completely decoded array the item would be, and then by using the headers, we find where in each block the number would be, and where in the highest level's array the object to be decoded is.
+
+Once we have the path, it becomes simply a matter of following, instead of building arrays, you only keep the object identified by the path, and decode through there alone. That is why it only takes linear time with respect to the depth of the data structure.
+
 
 \bigskip
 
@@ -135,25 +176,19 @@ This reasoning for the encoding time also extends to the average encoding sizes 
     \end{tabular}
 \end{center}
 
-
-
 \includegraphics[scale=0.4]{images/betterlevel_v_decode}
 \includegraphics[scale=0.4]{images/individual_decodetime}
 \afterpage{\vfill}
 
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
-
+Looking at decoding across each level, we notice that the average decoding times are very similar, with a slight decrease as the level increases. The change is too small to be of much statistically interest, leading us to believe that the decode time is essentially the same for each level on average. We can get a better sense of this by looking at the individual decoding time scatter plot. Here, it appears that in the majority of cases, both level 2 and level 4 decoding are roughly the same time. The red scatter mass on the left and the blue scatter mass on the left seem to be noise in the system. However, on second examination, it is possible that level 4 decoding is slight slower on the early values in the input while level 2 decoding is slight slower on the later values in the input. This scenario may occur because large numbers will have been reduced significantly by level 4, making them easier to decode using the spillover decoding algorithm.\\
 
 \includegraphics[scale=0.4]{images/decoding_time}
 \includegraphics[scale=0.4]{images/individual_decode_20000}
 \afterpage{\vfill}
 
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
-asdfaksdjf;aksldfjadsf\\
+In general, it appears that decoding is not impacted by the level of encoding used on the input string, and the only factor we will have to worry about when decoding is the the length of the input string. Of some more importance is the time required to decode. We compared the decoding time for the three implementations mentioned earlier, the naive trit to bit translation, the simple arithmetic encoder, and our Succincter model. We noticed that the naive method is definitely the faster of the three, which intuitively makes sense because each trit is stored in its full bit form. Succincter is extremely close in speed to the naive decoder; this means that we can encode information and store it in a more compact form than the naive method while still having similar decoding times across the entire input. Succincter handles the arithmetic encoder time with ease; it appears that as the length of the input increases, the arithmetic decoder grows in polynomial time, while the Succincter implementation barely grows at all. Because we use similar, or even less, space than the arithmetic encoding scheme, Succincter seems to be a viable replacement for arithmetic encoding if properly implemented. \\
+\indent While we look at the average decoding time, it may be helpful to take note of the individual decoding time. Once again, we see that the naive method is the best one; for any individual trits, we require no calculation and can simple covert the number of bits we see into trits. Once again, Succincter is able to match the individual decoding time because of the properties of the spillover algorithm and universe as defined in the Patrascu paper. Arithmetic decoding of individual trits requires the entire string to be decoded first, which seems to end up slowing down the arithmetic decoder a lot, leading to the logarthimic curve seen in the graph above.
+
 
 \includegraphics[scale=0.4]{images/encoding_time}
 \includegraphics[scale=0.4]{images/encoding_size}
@@ -168,7 +203,7 @@ asdfaksdjf;aksldfjadsf\\
 \centerline{**********}
 
 \noindent \section{References}
-
+Patrascu, Mihai. Succincter. 49th IEEE Symposium on Foundations of Computer Science. 2008.
 
 \noindent \section*{Appendix}
 
